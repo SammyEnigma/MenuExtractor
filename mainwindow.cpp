@@ -44,12 +44,34 @@ public:
                 // QMainWindow tag itself. They are outside the scope of the
                 // menu bar widget xml tag.
 
+                // Store the action so we can add its full info later.
+                actions << action;
+
                 // <addaction name="actionBar1"/>
                 writer.writeTextElement("addaction", action->objectName());
             }
         }
 
         // Close the widget XML tag.
+        writer.writeEndElement();
+    }
+
+    void enumerateAction(QAction *action)
+    {
+        // This is how the XML looks:
+        //
+        // <action name="actionBar1">
+        //  <property name="text">
+        //   <string>Bar1</string>
+        //  </property>
+        // </action>
+
+        writer.writeStartElement("action");
+        writer.writeAttribute("name", action->objectName());
+        writer.writeStartElement("property");
+        writer.writeAttribute("name", "text");
+        writer.writeTextElement("string", action->text());
+        writer.writeEndElement();
         writer.writeEndElement();
     }
 
@@ -60,9 +82,16 @@ public:
         foreach (QMenu *menu, menuBar->findChildren<QMenu*>()) {
             enumerateMenu(menu, 1);
         }
+
+        buffer += "\n\n===================\n\n";
+
+        foreach (QAction *action, menuBar->findChildren<QAction*>()) {
+            enumerateAction(action);
+        }
     }
 
 private:
+    QList<QAction*> actions;
     QString buffer;
     QXmlStreamWriter writer;
 };
