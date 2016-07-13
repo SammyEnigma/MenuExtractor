@@ -63,25 +63,6 @@ public:
         writer.writeEndElement();
     }
 
-    void enumerateAction(QAction *action)
-    {
-        // This is how the XML looks:
-        //
-        // <action name="actionBar1">
-        //  <property name="text">
-        //   <string>Bar1</string>
-        //  </property>
-        // </action>
-
-        writer.writeStartElement("action");
-        writer.writeAttribute("name", action->objectName());
-        writer.writeStartElement("property");
-        writer.writeAttribute("name", "text");
-        writer.writeTextElement("string", action->text());
-        writer.writeEndElement();
-        writer.writeEndElement();
-    }
-
     // I use a separate function so it can receive a QMenuBar pointer.
     // Otherwise it's the same code as enumerateMenu().
     void enumerateMenuBar(QMenuBar *menuBar)
