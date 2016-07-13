@@ -34,6 +34,14 @@ public:
         writer.writeTextElement("string", menu->title());
         writer.writeEndElement();
 
+        // Write all the sub-menus before we write any of the actions,
+        // because we
+        foreach (QAction *ii, menu->actions()) {
+            if (ii->menu()) {
+                enumerateMenu(ii->menu());
+            }
+        }
+
         // Now write all the nested actions and submenus.
         foreach (QAction *ii, menu->actions()) {
             // There are 3 cases - a sub-menu, an ordinary action, or a separator.
@@ -45,13 +53,6 @@ public:
                 // <addaction name="menuFoo"/>
                 writer.writeEmptyElement("addaction");
                 writer.writeAttribute("name", ii->menu()->objectName());
-
-                // This is not strictly how Qt Designer generates the XML.
-                // It first writes all the sub-menu widget declarations,
-                // and only then the addactions, but I think the sub-menu
-                // declarations have no influence on the menu-order. They
-                // can be placed wherever you want.
-                enumerateMenu(ii->menu());
             } else {
                 writer.writeEmptyElement("addaction");
                 writer.writeAttribute("name", ii->objectName());
