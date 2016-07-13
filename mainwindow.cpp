@@ -35,20 +35,26 @@ public:
         writer.writeEndElement();
 
         // Now write all the nested actions and submenus.
-        foreach (QObject *ii, menu->findChildren<QObject*>()) {
-            if (QMenu *menu = qobject_cast<QMenu*>(ii)) {
-                enumerateMenu(menu);
-            } else if (QAction *action = qobject_cast<QAction *>(ii)) {
-                // Actions are just referenced here. Their full description is
-                // a top-level xml entry. Top-level means it's a child of the
-                // QMainWindow tag itself. They are outside the scope of the
-                // menu bar widget xml tag.
+        foreach (QAction *ii, menu->actions()) {
+            // There are 3 cases - a sub-menu, an ordinary action, or a separator.
+            if (ii->isSeparator()) {
+                // <addaction name="separator"/>
+                writer.writeEmptyElement("addaction");
+                writer.writeAttribute("name", "separator");
+            } else if (ii->menu()) {
+                // <addaction name="menuFoo"/>
+                writer.writeEmptyElement("addaction");
+                writer.writeAttribute("name", ii->menu()->objectName());
 
-                // Store the action so we can add its full info later.
-                actions << action;
-
-                // <addaction name="actionBar1"/>
-                writer.writeTextElement("addaction", action->objectName());
+                // This is not strictly how Qt Designer generates the XML.
+                // It first writes all the sub-menu widget declarations,
+                // and only then the addactions, but I think the sub-menu
+                // declarations have no influence on the menu-order. They
+                // can be placed wherever you want.
+                enumerateMenu(ii->menu());
+            } else {
+                writer.writeEmptyElement("addaction");
+                writer.writeAttribute("name", ii->objectName());
             }
         }
 
@@ -79,14 +85,10 @@ public:
     // Otherwise it's the same code as enumerateMenu().
     void enumerateMenuBar(QMenuBar *menuBar)
     {
-        foreach (QMenu *menu, menuBar->findChildren<QMenu*>()) {
-            enumerateMenu(menu);
-        }
-
-        buffer += "\n\n===================\n\n";
-
-        foreach (QAction *action, menuBar->findChildren<QAction*>()) {
-            enumerateAction(action);
+        foreach (QAction *ii, menuBar->actions()) {
+            if (ii->menu()) {
+                enumerateMenu(ii->menu());
+            }
         }
     }
 
