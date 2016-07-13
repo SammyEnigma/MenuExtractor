@@ -14,7 +14,7 @@ public:
 
     QString xmlOutput() { return buffer; }
 
-    void enumerateMenu(QMenu *menu, int level)
+    void enumerateMenu(QMenu *menu)
     {
         // This is how the XML looks:
         //
@@ -37,7 +37,7 @@ public:
         // Now write all the nested actions and submenus.
         foreach (QObject *ii, menu->findChildren<QObject*>()) {
             if (QMenu *menu = qobject_cast<QMenu*>(ii)) {
-                enumerateMenu(menu, level+1);
+                enumerateMenu(menu);
             } else if (QAction *action = qobject_cast<QAction *>(ii)) {
                 // Actions are just referenced here. Their full description is
                 // a top-level xml entry. Top-level means it's a child of the
@@ -80,7 +80,7 @@ public:
     void enumerateMenuBar(QMenuBar *menuBar)
     {
         foreach (QMenu *menu, menuBar->findChildren<QMenu*>()) {
-            enumerateMenu(menu, 1);
+            enumerateMenu(menu);
         }
 
         buffer += "\n\n===================\n\n";
