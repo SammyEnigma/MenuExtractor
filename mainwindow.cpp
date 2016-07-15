@@ -14,6 +14,34 @@ public:
 
     QString xmlOutput() { return buffer; }
 
+    void enumerateMenuActions(const QList<QAction*> actions)
+    {
+        // Write all the sub-menus before we write any of the actions,
+        // because we
+        foreach (QAction *ii, actions) {
+            if (ii->menu()) {
+                enumerateMenu(ii->menu());
+            }
+        }
+
+        // Now write all the nested actions and submenus.
+        foreach (QAction *ii, actions) {
+            // There are 3 cases - a sub-menu, an ordinary action, or a separator.
+            if (ii->isSeparator()) {
+                // <addaction name="separator"/>
+                writer.writeEmptyElement("addaction");
+                writer.writeAttribute("name", "separator");
+            } else if (ii->menu()) {
+                // <addaction name="menuFoo"/>
+                writer.writeEmptyElement("addaction");
+                writer.writeAttribute("name", ii->menu()->objectName());
+            } else {
+                writer.writeEmptyElement("addaction");
+                writer.writeAttribute("name", ii->objectName());
+            }
+        }
+    }
+
     void enumerateMenu(QMenu *menu)
     {
         // This is how the XML looks:
@@ -34,30 +62,7 @@ public:
         writer.writeTextElement("string", menu->title());
         writer.writeEndElement();
 
-        // Write all the sub-menus before we write any of the actions,
-        // because we
-        foreach (QAction *ii, menu->actions()) {
-            if (ii->menu()) {
-                enumerateMenu(ii->menu());
-            }
-        }
-
-        // Now write all the nested actions and submenus.
-        foreach (QAction *ii, menu->actions()) {
-            // There are 3 cases - a sub-menu, an ordinary action, or a separator.
-            if (ii->isSeparator()) {
-                // <addaction name="separator"/>
-                writer.writeEmptyElement("addaction");
-                writer.writeAttribute("name", "separator");
-            } else if (ii->menu()) {
-                // <addaction name="menuFoo"/>
-                writer.writeEmptyElement("addaction");
-                writer.writeAttribute("name", ii->menu()->objectName());
-            } else {
-                writer.writeEmptyElement("addaction");
-                writer.writeAttribute("name", ii->objectName());
-            }
-        }
+        enumerateMenuActions(menu->actions());
 
         // Close the widget XML tag.
         writer.writeEndElement();
@@ -67,11 +72,7 @@ public:
     // Otherwise it's the same code as enumerateMenu().
     void enumerateMenuBar(QMenuBar *menuBar)
     {
-        foreach (QAction *ii, menuBar->actions()) {
-            if (ii->menu()) {
-                enumerateMenu(ii->menu());
-            }
-        }
+        enumerateMenuActions(menuBar->actions());
     }
 
 private:
