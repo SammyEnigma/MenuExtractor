@@ -1,4 +1,4 @@
-A class that can enumerate an existing QMenu, and generate XML that can be added to an .ui file.
+This is a small Qt/C++ project. I've created a class XmlEnumerator which can enumerate an existing QMenu, and generate XML that can be added to an .ui file.
 
 Usage:
 
